@@ -172,7 +172,11 @@ void Graph::findShortestPath(int s, int dest)
         vertices[x].mPathCost = -1;
     }
     source.mPathCost = 0;
-
+    if(source.edgesToAdjacent.empty())
+    {
+        cout << "NO PATH FOUND" << endl;
+        return;
+    }
     //std::priority_queue < Vertex, std::vector<Vertex>, Compare > traverseList;
     typedef std::map<int,double>::iterator it_type;
     //add the vertex's that the source points to the traverseList
@@ -205,6 +209,10 @@ void Graph::findShortestPath(int s, int dest)
     // }
     // cout << endl;
     double cost = 0;
+    
+    
+    
+    
 
     while( !traverseList.empty() )
     {
@@ -212,8 +220,27 @@ void Graph::findShortestPath(int s, int dest)
         //MinCost vertex
         traverseList = sortTraverseList(traverseList,source);
         Vertex minCost = traverseList[0];
-        minCost.mPathCost = 0;
-        cout << "moving to vertex: " << minCost.id << endl;
+        //minCost.mPathCost = 0;
+        if(minCost.mPathCost <= 0 )
+        {
+            for(it_type iterator = source.edgesToAdjacent.begin(); iterator != source.edgesToAdjacent.end(); iterator++) 
+            {
+                for(auto v: vertices)
+                {
+                    if(v.id == iterator->first)
+                    {
+
+                        minCost.mPathCost = iterator->second;
+                        //cout << "v.id: " << v.id << " minCosts: " << iterator->first << endl;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+        
+
+        cout << "moving to vertex: " << minCost.id << " which has a cost of: " << minCost.mPathCost << endl;
 
         for( int x=0; x < pathVertex.size(); x++ )
         {
@@ -227,13 +254,13 @@ void Graph::findShortestPath(int s, int dest)
         //mincost vertex is the destination vertex, aka we're done
         if( minCost.id == destination.id )
         {
-            if(minCost.mPathCost == 0)
+            if(minCost.mPathCost < 0)
             {
                 for(it_type iterator = source.edgesToAdjacent.begin(); iterator != source.edgesToAdjacent.end(); iterator++) 
                 {
                     if(minCost.id == iterator->first)
                     {
-                        minCost.mPathCost += iterator->second;
+                        minCost.mPathCost = iterator->second;
                     }
                 }
             }
@@ -245,7 +272,7 @@ void Graph::findShortestPath(int s, int dest)
                 }
                 else
                 {
-                    cout << pathVertex[x].id << " " << pathVertex[x].mPathCost + minCost.mPathCost << endl;
+                    cout << pathVertex[x].id << " " << minCost.mPathCost << endl;
                 }
             }
             break;
@@ -257,21 +284,30 @@ void Graph::findShortestPath(int s, int dest)
             {
                 for(auto v: vertices)
                 {
+                    cout << "v.id: " << v.id << " minCosts vertices: " << iterator->first << endl;
                     //cout << "v.id: " << v.id << " adj id: " << iterator->first << endl;
-                    if(v.id == iterator->first && v.mPathCost == -1)
+                    if(v.mPathCost == -1 && v.id == iterator->first)
                     {  
-                        //cout <<"weight: " << iterator->second << endl;
-                        v.mPathCost = iterator->second;
+                        if(v.id == 5)
+                        {
+                            cout << "iterC: " << iterator->second << " minC: " << minCost.mPathCost << endl;
+                        }
+                        v.mPathCost = iterator->second + minCost.mPathCost;
+                        cout << "v: " << v.id << " cost: " << v.mPathCost << endl;
                         traverseList.push_back(v);
-                        //cout << "vertex: " << v.id << " cost: " << v.mPathCost << endl;
                     }
                     else
                     {
-                        double newCost = minCost.mPathCost + iterator->second;
-                        if(v.mPathCost > newCost)
+                        if(v.id == iterator->first)
                         {
-                            v.mPathCost = newCost;
-                            traverseList.push_back(v);
+                            double newCost = minCost.mPathCost + iterator->second;
+                            cout << "v cost:" << v.mPathCost << " newCost: " << newCost << endl;
+                            if(v.mPathCost > newCost)
+                            {
+                                v.mPathCost = newCost;
+                                traverseList.push_back(v);
+                                cout << "vertex: " << v.id << " cost: " << v.mPathCost << endl;
+                            }
                         }
                     }
                 }
