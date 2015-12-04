@@ -10,6 +10,7 @@
 #include <map>
 #include <algorithm>
 #include <queue>
+#include <iomanip>
 
 using namespace std;
 class Vertex
@@ -20,6 +21,8 @@ public:
     int id;
     map<int,double> edgesToAdjacent;
     double mPathCost;
+    vector<int> mPath;
+    //bool mVisited = false;
 };
 
 
@@ -32,6 +35,7 @@ public:
     {
         ifstream file(filename);
         string line;
+        //create vector of Vertex's
         while (getline(file,line))
         {
             istringstream lineStream(line);
@@ -41,10 +45,8 @@ public:
             lineStream >> id;
             lineStream >> edge;
             lineStream >> weight;
-
-            //cout << "id: " << id << endl;
+            //bool to see if a vertex has already been created from the source
             bool used = false;
-            
             for(int x=0; x<vertices.size(); x++)
             {
                 if(vertices[x].id == id)
@@ -53,6 +55,7 @@ public:
                     break;
                 }
             }
+            //bool that finds if a vertex has been created from the destination
             bool created = false;
             for(auto vertex: vertices)
             {
@@ -62,33 +65,25 @@ public:
                     break;
                 }
             }
+            //this vertex hasn't had a connection to it, but we should still make it
             if(created == false)
             {
                 Vertex v;
                 v.id = edge;
                 vertices.push_back(v);
             }
-            //already has a vertex created
+            //already has a vertex created, so just add to it's map
             if( used )
             {
-                //cout << "id: " << id;
                 for(int x =0; x<vertices.size(); x++)
                 {
                     if(id == vertices[x].id)
                     {
                         vertices[x].edgesToAdjacent[edge] = weight;
-                        //cout << "size " << vertices.size() <<  " " << id << "->" << edge << " weight: " << weight << " k,v: " << vertex.edgesToAdjacent[edge] << endl;
-                        cout << "vertex: " << vertices[x].id << " has connections to ";
-                        typedef std::map<int,double>::iterator it_type;
-                        for(it_type iterator = vertices[x].edgesToAdjacent.begin(); iterator != vertices[x].edgesToAdjacent.end(); iterator++) {
-                            cout << iterator->first << " weight(" << iterator->second << "), "; /*<< " value: " << iterator->second << " ";*/
-                            // iterator->second = value
-                            // Repeat if you also want to iterate through the second map.
-                        }
-                        cout << endl;
                     }
                 }
             }
+            //create a new vertex and push to vertices vector
             else
             {
                 Vertex v;
@@ -96,16 +91,6 @@ public:
                 
                 v.edgesToAdjacent[ edge ] = weight;
                 vertices.push_back(v);
-                // cout << "size " << vertices.size() <<  " " << id << "->" << edge <<  " weight: " << weight << endl;
-                // typedef std::map<int,double>::iterator it_type;
-                // cout << "vertex: " << v.id << " has connections to ";
-                // for(it_type iterator = v.edgesToAdjacent.begin(); iterator != v.edgesToAdjacent.end(); iterator++) 
-                // {
-                //     cout << "key: " << iterator->first << " value: " << iterator->second << " ";
-                //     // iterator->second = value
-                //     // Repeat if you also want to iterate through the second map.
-                // }
-                // cout << endl;
             }
             numOfNodes++;
         }
@@ -113,11 +98,11 @@ public:
     ~Graph() {}
     void findShortestPath(int source, int destination);
     Vertex findVertex(int node);
+    //bubble sorts the vector of Vertex's
     vector<Vertex> sortTraverseList(std::vector<Vertex> v, Vertex source);
     
-    
 };
-
+//Finds a vertex in the vertices vector
 Vertex Graph::findVertex(int node)
 {
     for( auto vertex : vertices)
@@ -128,7 +113,7 @@ Vertex Graph::findVertex(int node)
         }
     }
 }
-
+//bubble sorts the vector of Vertex's
 vector<Vertex> Graph::sortTraverseList(vector<Vertex> v, Vertex source)
 {
     bool swapped = true;
@@ -139,7 +124,8 @@ vector<Vertex> Graph::sortTraverseList(vector<Vertex> v, Vertex source)
         swapped = false;
         j++;
         for (int i = 0; i < v.size() - j; i++) {
-            if(source.edgesToAdjacent[v[i].id] > source.edgesToAdjacent[v[i+1].id])
+            //if(source.edgesToAdjacent[v[i].id] > source.edgesToAdjacent[v[i+1].id])
+            if(v[i].mPathCost > v[i +1].mPathCost)
             {
                 tmp = v[i];
                 v[i] = v[i + 1];
@@ -150,7 +136,7 @@ vector<Vertex> Graph::sortTraverseList(vector<Vertex> v, Vertex source)
     }
     return v;
 }
-
+//finds shortest path between a source and destination vertex
 void Graph::findShortestPath(int s, int dest)
 {
     cout << endl;
@@ -163,15 +149,18 @@ void Graph::findShortestPath(int s, int dest)
 
     // grab the source vertex
     Vertex source = findVertex(s);
+    source.mPath.push_back(s);
     Vertex destination = findVertex(dest);
     //source should always be in the path if it exists
     pathVertex.push_back(source);
-    
+    //initialize all vertices to -1(inf)
     for(int x=0; x<vertices.size(); x++)
     {
         vertices[x].mPathCost = -1;
     }
+    //source costs 0
     source.mPathCost = 0;
+    //if the source has no edges, it doesn't point to anything, no path
     if(source.edgesToAdjacent.empty())
     {
         cout << "NO PATH FOUND" << endl;
@@ -180,65 +169,41 @@ void Graph::findShortestPath(int s, int dest)
     //std::priority_queue < Vertex, std::vector<Vertex>, Compare > traverseList;
     typedef std::map<int,double>::iterator it_type;
     //add the vertex's that the source points to the traverseList
-  
     for(it_type iterator = source.edgesToAdjacent.begin(); iterator != source.edgesToAdjacent.end(); iterator++) 
     {
         for(auto v: vertices)
         {
             if(v.id == iterator->first)
             {  
+                v.mPath = source.mPath;
+                v.mPathCost = iterator->second;
                 traverseList.push_back(v);
             }
         }
     }
-    //testing that sorting a list of vertex's works
-    // Vertex a;
-    // a.id = 4;
-    // Vertex b;
-    // b.id = 5;
-    // source.edgesToAdjacent[a.id] = 7;
-    // source.edgesToAdjacent[b.id] = 10;
-    // traverseList.push_back(a);
-    // traverseList.push_back(b);
 
     traverseList = sortTraverseList(traverseList,source);
-
-    // for( auto v : traverseList)
-    // {
-    //     cout << "Vertex: " << v.id << " with weight: " << source.edgesToAdjacent[v.id] << endl;
-    // }
-    // cout << endl;
-    double cost = 0;
-    
-    
-    
-    
+    //traverseList.push_back(source);
 
     while( !traverseList.empty() )
     {
 
         //MinCost vertex
         traverseList = sortTraverseList(traverseList,source);
-        Vertex minCost = traverseList[0];
-        //minCost.mPathCost = 0;
-        if(minCost.mPathCost <= 0 )
+        cout << endl;
+        cout << "Traverse list nodes, " << endl;
+        for (auto v : traverseList)
         {
-            for(it_type iterator = source.edgesToAdjacent.begin(); iterator != source.edgesToAdjacent.end(); iterator++) 
-            {
-                for(auto v: vertices)
-                {
-                    if(v.id == iterator->first)
-                    {
-
-                        minCost.mPathCost = iterator->second;
-                        //cout << "v.id: " << v.id << " minCosts: " << iterator->first << endl;
-                        break;
-                    }
-                }
-                break;
-            }
+            cout << "Vertex: " << v.id << " cost: " << v.mPathCost << endl; 
         }
-        
+        cout << endl;
+        //possibly when assigning this need to delete from traverse list?
+        Vertex minCost = traverseList[0];
+
+        // if(minCost.id == s){
+        //     cout << "hello";
+        //     minCost.mPath.push_back(s);
+        // }
 
         cout << "moving to vertex: " << minCost.id << " which has a cost of: " << minCost.mPathCost << endl;
 
@@ -254,27 +219,13 @@ void Graph::findShortestPath(int s, int dest)
         //mincost vertex is the destination vertex, aka we're done
         if( minCost.id == destination.id )
         {
-            if(minCost.mPathCost < 0)
+            cout << endl;
+            for(auto i: minCost.mPath)
             {
-                for(it_type iterator = source.edgesToAdjacent.begin(); iterator != source.edgesToAdjacent.end(); iterator++) 
-                {
-                    if(minCost.id == iterator->first)
-                    {
-                        minCost.mPathCost = iterator->second;
-                    }
-                }
+                cout << i << "->";
             }
-            for(int x=0; x<pathVertex.size(); x++)
-            {
-                if(x < pathVertex.size() -1)
-                {
-                    cout << pathVertex[x].id << "->";
-                }
-                else
-                {
-                    cout << pathVertex[x].id << " " << minCost.mPathCost << endl;
-                }
-            }
+            cout << minCost.id << " " << setprecision (2) << fixed << minCost.mPathCost << endl;
+            traverseList.erase(traverseList.begin());
             break;
         }
         else
@@ -284,29 +235,66 @@ void Graph::findShortestPath(int s, int dest)
             {
                 for(auto v: vertices)
                 {
-                    cout << "v.id: " << v.id << " minCosts vertices: " << iterator->first << endl;
-                    //cout << "v.id: " << v.id << " adj id: " << iterator->first << endl;
-                    if(v.mPathCost == -1 && v.id == iterator->first)
-                    {  
-                        if(v.id == 5)
-                        {
-                            cout << "iterC: " << iterator->second << " minC: " << minCost.mPathCost << endl;
-                        }
-                        v.mPathCost = iterator->second + minCost.mPathCost;
-                        cout << "v: " << v.id << " cost: " << v.mPathCost << endl;
-                        traverseList.push_back(v);
-                    }
-                    else
+                    if(v.id == iterator->first)
                     {
-                        if(v.id == iterator->first)
-                        {
-                            double newCost = minCost.mPathCost + iterator->second;
-                            cout << "v cost:" << v.mPathCost << " newCost: " << newCost << endl;
-                            if(v.mPathCost > newCost)
+                        //hey it's infinite and if the vertex is adjacent to minCost
+                        //lets do shit
+                        if(v.mPathCost == -1 && v.id == iterator->first)
+                        {  
+                            double cost = iterator->second + minCost.mPathCost;
+                            v.mPathCost = iterator->second + minCost.mPathCost;
+                            cout << "v: " << v.id << " cost: " << v.mPathCost << endl;
+                            
+                            bool inTraverse = false;
+                            for (auto vertex : traverseList)
                             {
-                                v.mPathCost = newCost;
+                                if(vertex.id == v.id)
+                                {
+                                    inTraverse = true;
+                                    if( vertex.mPathCost > v.mPathCost)
+                                    {
+                                        v.mPath = minCost.mPath;
+                                        v.mPath.push_back(minCost.id);
+                                        // cout <<"Path includes: ";
+                                        // for(auto i: v.mPath)
+                                        // {
+                                        //     cout << i << "->";
+                                        // }
+                                        // cout << endl;
+                                        vertex.mPathCost = v.mPathCost;
+                                        cout << " in TraverseList, vertex: " << vertex.id << " cost: " << vertex.mPathCost << endl;
+                                    }
+
+                                }
+                            }
+                            if(!inTraverse)
+                            {
+                                v.mPath = minCost.mPath;
+                                v.mPath.push_back(minCost.id);
+                                v.mPathCost = cost;
+                                // cout <<"Path includes: ";
+                                // for(auto i: v.mPath)
+                                // {
+                                //     cout << i << "->";
+                                // }
+                                cout << endl;
                                 traverseList.push_back(v);
-                                cout << "vertex: " << v.id << " cost: " << v.mPathCost << endl;
+                                cout << "pushing back" << v.id<<endl;
+                            }
+                        }
+                        else
+                        {
+                            // vertex  = adj of minCost
+                            if(v.id == iterator->first)
+                            {
+                                double newCost = minCost.mPathCost + iterator->second;
+                                cout << "v cost:" << v.mPathCost << " newCost: " << newCost << endl;
+                                if(v.mPathCost > newCost)
+                                {
+                                    v.mPathCost = newCost;
+                                    //traverseList.push_back(v);
+                                    cout << "vertex: " << v.id << " cost: " << v.mPathCost << endl;
+                                }
                             }
                         }
                     }
@@ -331,8 +319,8 @@ void Graph::findShortestPath(int s, int dest)
 
     // for(map<int,double>::iterator iter = vertex.edgesToAdjacent.begin(); iter != vertex.edgesToAdjacent.end(); iter++)
     // {
-    //     adjacents.push_back( iter->second );
-    //     cout << "value: " << iter->second << endl;
+    //     adjacents.push_back( iter.second );
+    //     cout << "value: " << iter.second << endl;
     // }
     // cout << "got here" << endl;
     
