@@ -239,7 +239,7 @@ void Graph::findShortestPath(int s, int dest)
                     {
                         //hey it's infinite and if the vertex is adjacent to minCost
                         //lets do shit
-                        if(v.mPathCost == -1 && v.id == iterator->first)
+                        if(v.mPathCost == -1 )//&& v.id == iterator->first)
                         {  
                             double cost = iterator->second + minCost.mPathCost;
                             v.mPathCost = iterator->second + minCost.mPathCost;
@@ -284,18 +284,15 @@ void Graph::findShortestPath(int s, int dest)
                         }
                         else
                         {
-                            // vertex  = adj of minCost
-                            if(v.id == iterator->first)
+                            double newCost = minCost.mPathCost + iterator->second;
+                            cout << "v cost:" << v.mPathCost << " newCost: " << newCost << endl;
+                            if(v.mPathCost > newCost)
                             {
-                                double newCost = minCost.mPathCost + iterator->second;
-                                cout << "v cost:" << v.mPathCost << " newCost: " << newCost << endl;
-                                if(v.mPathCost > newCost)
-                                {
-                                    v.mPathCost = newCost;
-                                    //traverseList.push_back(v);
-                                    cout << "vertex: " << v.id << " cost: " << v.mPathCost << endl;
-                                }
+                                v.mPathCost = newCost;
+                                //traverseList.push_back(v);
+                                //cout << "vertex: " << v.id << " cost: " << v.mPathCost << endl;
                             }
+                            
                         }
                     }
                 }
@@ -306,25 +303,5 @@ void Graph::findShortestPath(int s, int dest)
     if( pathVertex[pathVertex.size()-1].id != destination.id )
     {
         cout << "NO PATH FOUND" << endl;
-    }
-    
-        
+    }   
 }
-
-    // for( auto v: traverseList)
-    // {
-
-    // }
-
-
-    // for(map<int,double>::iterator iter = vertex.edgesToAdjacent.begin(); iter != vertex.edgesToAdjacent.end(); iter++)
-    // {
-    //     adjacents.push_back( iter.second );
-    //     cout << "value: " << iter.second << endl;
-    // }
-    // cout << "got here" << endl;
-    
-
-    //std::priority_queue<Vertex, std::vector<Vertex>, std::greater<int> > traverseList(myints,myints+4);
-
-
