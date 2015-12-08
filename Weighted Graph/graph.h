@@ -139,9 +139,6 @@ vector<Vertex> Graph::sortTraverseList(vector<Vertex> v, Vertex source)
 //finds shortest path between a source and destination vertex
 void Graph::findShortestPath(int s, int dest)
 {
-    cout << endl;
-    cout << endl;
-    cout << endl;
 
     // map<string,double>pathCost;
     vector<Vertex> traverseList;
@@ -151,6 +148,7 @@ void Graph::findShortestPath(int s, int dest)
     Vertex source = findVertex(s);
     source.mPath.push_back(s);
     Vertex destination = findVertex(dest);
+    
     //source should always be in the path if it exists
     pathVertex.push_back(source);
     //initialize all vertices to -1(inf)
@@ -158,6 +156,7 @@ void Graph::findShortestPath(int s, int dest)
     {
         vertices[x].mPathCost = -1;
     }
+    
     //source costs 0
     source.mPathCost = 0;
     //if the source has no edges, it doesn't point to anything, no path
@@ -166,7 +165,7 @@ void Graph::findShortestPath(int s, int dest)
         cout << "NO PATH FOUND" << endl;
         return;
     }
-    //std::priority_queue < Vertex, std::vector<Vertex>, Compare > traverseList;
+
     typedef std::map<int,double>::iterator it_type;
     //add the vertex's that the source points to the traverseList
     for(it_type iterator = source.edgesToAdjacent.begin(); iterator != source.edgesToAdjacent.end(); iterator++) 
@@ -183,29 +182,15 @@ void Graph::findShortestPath(int s, int dest)
     }
 
     traverseList = sortTraverseList(traverseList,source);
-    //traverseList.push_back(source);
 
     while( !traverseList.empty() )
     {
 
         //MinCost vertex
         traverseList = sortTraverseList(traverseList,source);
-        cout << endl;
-        cout << "Traverse list nodes, " << endl;
-        for (auto v : traverseList)
-        {
-            cout << "Vertex: " << v.id << " cost: " << v.mPathCost << endl; 
-        }
-        cout << endl;
+        
         //possibly when assigning this need to delete from traverse list?
         Vertex minCost = traverseList[0];
-
-        // if(minCost.id == s){
-        //     cout << "hello";
-        //     minCost.mPath.push_back(s);
-        // }
-
-        cout << "moving to vertex: " << minCost.id << " which has a cost of: " << minCost.mPathCost << endl;
 
         for( int x=0; x < pathVertex.size(); x++ )
         {
@@ -219,7 +204,6 @@ void Graph::findShortestPath(int s, int dest)
         //mincost vertex is the destination vertex, aka we're done
         if( minCost.id == destination.id )
         {
-            cout << endl;
             for(auto i: minCost.mPath)
             {
                 cout << i << "->";
@@ -243,8 +227,7 @@ void Graph::findShortestPath(int s, int dest)
                         {  
                             double cost = iterator->second + minCost.mPathCost;
                             v.mPathCost = iterator->second + minCost.mPathCost;
-                            cout << "v: " << v.id << " cost: " << v.mPathCost << endl;
-                            
+
                             bool inTraverse = false;
                             for (auto vertex : traverseList)
                             {
@@ -255,14 +238,8 @@ void Graph::findShortestPath(int s, int dest)
                                     {
                                         v.mPath = minCost.mPath;
                                         v.mPath.push_back(minCost.id);
-                                        // cout <<"Path includes: ";
-                                        // for(auto i: v.mPath)
-                                        // {
-                                        //     cout << i << "->";
-                                        // }
-                                        // cout << endl;
                                         vertex.mPathCost = v.mPathCost;
-                                        cout << " in TraverseList, vertex: " << vertex.id << " cost: " << vertex.mPathCost << endl;
+                                        traverseList.push_back(v);
                                     }
 
                                 }
@@ -272,25 +249,15 @@ void Graph::findShortestPath(int s, int dest)
                                 v.mPath = minCost.mPath;
                                 v.mPath.push_back(minCost.id);
                                 v.mPathCost = cost;
-                                // cout <<"Path includes: ";
-                                // for(auto i: v.mPath)
-                                // {
-                                //     cout << i << "->";
-                                // }
-                                cout << endl;
                                 traverseList.push_back(v);
-                                cout << "pushing back" << v.id<<endl;
                             }
                         }
                         else
                         {
                             double newCost = minCost.mPathCost + iterator->second;
-                            cout << "v cost:" << v.mPathCost << " newCost: " << newCost << endl;
                             if(v.mPathCost > newCost)
                             {
                                 v.mPathCost = newCost;
-                                //traverseList.push_back(v);
-                                //cout << "vertex: " << v.id << " cost: " << v.mPathCost << endl;
                             }
                             
                         }
