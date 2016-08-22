@@ -113,7 +113,10 @@ Vertex Graph::findVertex(int node)
         }
     }
 }
+
 //bubble sorts the vector of Vertex's
+//small # of edges so it's okay // I was too lazy to use a priority queque in 
+//Should at least make this use a linear search since it's O(n) vs O(n^2)
 vector<Vertex> Graph::sortTraverseList(vector<Vertex> v, Vertex source)
 {
     bool swapped = true;
@@ -136,7 +139,9 @@ vector<Vertex> Graph::sortTraverseList(vector<Vertex> v, Vertex source)
     }
     return v;
 }
+
 //finds shortest path between a source and destination vertex
+//Applying Dijkstra's
 void Graph::findShortestPath(int s, int dest)
 {
 
